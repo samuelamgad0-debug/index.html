@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ورشة كربراتير - مخزون القطع</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --orange: #ff6b00;
+    --orange2: #ff8c33;
+    --red: #e53935;
+    --green: #00c853;
+    --text: #f0f0f0;
+    --muted: #888;
+    --border: #333;
+    --radius: 14px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a1a1a, #111);
+    border-bottom: 2px solid var(--orange);
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(255,107,0,0.2);
+  }
+  .header-icon { font-size: 28px; }
+  .header-title { font-size: 20px; font-weight: 900; color: var(--orange); letter-spacing: -0.5px; }
+  .header-sub { font-size: 12px; color: var(--muted); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 73px;
+    z-index: 99;
+  }
+  .tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab.active { color: var(--orange); border-bottom-color: var(--orange); }
+  .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+  /* SCREENS */
+  .screen { display: none; padding: 16px; padding-bottom: 100px; }
+  .screen.active { display: block; }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 10px;
+    text-align: center;
+  }
+  .stat-card.orange { border-color: var(--orange); background: rgba(255,107,0,0.08); }
+  .stat-num { font-size: 24px; font-weight: 900; color: var(--orange); }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ADD PART FORM */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--orange);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* PHOTO UPLOAD */
+  .photo-upload {
+    width: 100%;
+    height: 160px;
+    border: 2px dashed var(--orange);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-bottom: 16px;
+    background: rgba(255,107,0,0.04);
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .photo-upload:active { background: rgba(255,107,0,0.1); }
+  .photo-upload img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 12px;
+  }
+  .photo-upload .overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border-radius: 12px;
+  }
+  .photo-upload-icon { font-size: 36px; margin-bottom: 8px; }
+  .photo-upload-text { font-size: 13px; color: var(--muted); }
+  #photoInput { display: none; }
+
+  /* INPUTS */
+  .input-group { margin-bottom: 14px; }
+  .input-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; display: block; font-weight: 600; }
+  .input-field {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: var(--orange); }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: var(--radius);
+    font-family: 'Cairo', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--orange); color: #fff; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-success { background: var(--green); color: #000; }
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--orange);
+    color: var(--orange);
+  }
+
+  /* PARTS LIST */
+  .part-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .part-card.low-stock { border-color: var(--red); }
+  .part-card-body { display: flex; gap: 14px; padding: 14px; align-items: center; }
+  .part-thumb {
+    width: 70px; height: 70px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .part-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+  .part-info { flex: 1; min-width: 0; }
+  .part-name { font-size: 15px; font-weight: 800; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .part-code { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .part-stock-row { display: flex; align-items: center; gap: 8px; }
+  .stock-badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .stock-badge.ok { background: rgba(0,200,83,0.15); color: var(--green); }
+  .stock-badge.low { background: rgba(229,57,53,0.15); color: var(--red); }
+  .stock-badge.zero { background: rgba(229,57,53,0.25); color: var(--red); }
+  .part-actions { display: flex; gap: 8px; padding: 0 14px 14px; }
+  .btn-sm {
+    flex: 1; padding: 9px; border-radius: 10px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px; font-weight: 700;
+    cursor: pointer; border: none;
+    transition: all 0.15s;
+  }
+  .btn-sm:active { transform: scale(0.95); }
+  .btn-sm.minus { background: rgba(229,57,53,0.15); color: var(--red); border: 1px solid var(--red); }
+  .btn-sm.plus { background: rgba(255,107,0,0.15); color: var(--orange); border: 1px solid var(--orange); }
+  .btn-sm.delete { background: rgba(229,57,53,0.1); color: var(--red); border: 1px solid #333; }
+
+  /* EOD SCREEN */
+  .eod-header {
+    text-align: center;
+    padding: 20px 0;
+    margin-bottom: 20px;
+  }
+  .eod-icon { font-size: 48px; margin-bottom: 10px; }
+  .eod-title { font-size: 22px; font-weight: 900; color: var(--orange); }
+  .eod-date { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  .eod-part-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .eod-part-name { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  .eod-controls { display: flex; align-items: center; gap: 10px; }
+  .eod-label { font-size: 13px; color: var(--muted); flex: 1; }
+  .qty-control { display: flex; align-items: center; gap: 10px; }
+  .qty-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--orange);
+    background: transparent;
+    color: var(--orange);
+    font-size: 20px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700;
+  }
+  .qty-num { font-size: 20px; font-weight: 900; min-width: 30px; text-align: center; }
+
+  .summary-card {
+    background: var(--surface2);
+    border: 2px solid var(--green);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+  }
+  .summary-title { font-size: 18px; font-weight: 900; color: var(--green); margin-bottom: 16px; }
+  .summary-row {
+    display: flex; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .val { font-weight: 700; }
+  .summary-row .val.red { color: var(--red); }
+  .summary-row .val.green { color: var(--green); }
+  .summary-row .val.orange { color: var(--orange); }
+
+  /* SEARCH */
+  .search-wrap { position: relative; margin-bottom: 16px; }
+  .search-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--muted); }
+  .search-field {
+    width: 100%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    padding: 12px 42px 12px 16px;
+    color: var(--text);
+    font-family: 'Cairo', sans-serif;
+    font-size: 14px;
+    outline: none;
+  }
+  .search-field:focus { border-color: var(--orange); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 56px; margin-bottom: 14px; }
+  .empty-text { font-size: 16px; font-weight: 600; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--orange);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 700;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.green { background: var(--green); color: #000; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-width: 500px;
+    border-top: 3px solid var(--orange);
+  }
+  .modal-title { font-size: 18px; font-weight: 800; color: var(--orange); margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+
+  /* HISTORY */
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+  .history-date { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+  .history-part { font-size: 14px; font-weight: 600; }
+  .history-change { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .badge-out { color: var(--red); font-weight: 700; }
+  .badge-in { color: var(--green); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">⚙️</div>
+  <div>
+    <div class="header-title">ورشة كربراتير</div>
+    <div class="header-sub">نظام إدارة المخزون</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('inventory')">
+    <span class="tab-icon">📦</span>المخزون
+  </div>
+  <div class="tab" onclick="showTab('add')">
+    <span class="tab-icon">➕</span>إضافة قطعة
+  </div>
+  <div class="tab" onclick="showTab('eod')">
+    <span class="tab-icon">🌙</span>نهاية اليوم
+  </div>
+</div>
+
+<!-- INVENTORY SCREEN -->
+<div id="screen-inventory" class="screen active">
+  <div class="stats-bar">
+    <div class="stat-card orange">
+      <div class="stat-num" id="stat-total">0</div>
+      <div class="stat-label">أنواع القطع</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-qty">0</div>
+      <div class="stat-label">إجمالي الكمية</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-low" style="color:#e53935">0</div>
+      <div class="stat-label">مخزون منخفض</div>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-field" type="text" placeholder="ابحث عن قطعة..." id="searchInput" oninput="renderInventory()">
+  </div>
+
+  <div id="parts-list"></div>
+</div>
+
+<!-- ADD PART SCREEN -->
+<div id="screen-add" class="screen">
+  <div class="card">
+    <div class="card-title">📸 صورة القطعة</div>
+    <div class="photo-upload" id="photoUploadArea" onclick="document.getElementById('photoInput').click()">
+      <div class="photo-upload-icon">📷</div>
+      <div class="photo-upload-text">اضغط لتصوير أو اختيار صورة</div>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="handlePhoto(this)">
+
+    <div class="input-group">
+      <label class="input-label">اسم القطعة *</label>
+      <input class="input-field" type="text" id="partName" placeholder="مثال: فلتر هواء كربراتير">
+    </div>
+    <div class="input-group">
+      <label class="input-label">كود القطعة</label>
+      <input class="input-field" type="text" id="partCode" placeholder="مثال: KRB-001">
+    </div>
+    <div class="input-group">
+      <label class="input-label">الكمية المتاحة *</label>
+      <input class="input-field" type="number" id="partQty" placeholder="0" min="0">
+    </div>
+    <div class="input-group">
+      <label class="input-label">الحد الأدنى للمخزون (تحذير)</label>
+      <input class="input-field" type="number" id="partMin" placeholder="مثال: 3" min="0">
+    </div>
+    <div class="input-group">
+      <label class="input-label">ملاحظات</label>
+      <input class="input-field" type="text" id="partNotes" placeholder="أي ملاحظات...">
+    </div>
+
+    <button class="btn btn-primary" onclick="savePart()">💾 حفظ القطعة</button>
+  </div>
+</div>
+
+<!-- EOD SCREEN -->
+<div id="screen-eod" class="screen">
+  <div class="eod-header">
+    <div class="eod-icon">🌙</div>
+    <div class="eod-title">تقرير نهاية اليوم</div>
+    <div class="eod-date" id="eod-date"></div>
+  </div>
+
+  <div id="eod-parts-list"></div>
+
+  <div id="eod-summary" style="display:none">
+    <div class="summary-card">
+      <div class="summary-title">✅ ملخص اليوم</div>
+      <div id="summary-rows"></div>
+    </div>
+    <br>
+    <button class="btn btn-success" onclick="confirmEOD()">✔️ تأكيد وتحديث المخزون</button>
+    <br><br>
+    <button class="btn btn-outline" onclick="resetEOD()">↩️ إعادة ضبط</button>
+  </div>
+
+  <div id="eod-empty" class="empty-state" style="display:none">
+    <div class="empty-icon">📦</div>
+    <div class="empty-text">مفيش قطع في المخزون</div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">✏️ تعديل القطعة</div>
+    <div class="input-group">
+      <label class="input-label">اسم القطعة</label>
+      <input class="input-field" type="text" id="edit-name">
+    </div>
+    <div class="input-group">
+      <label class="input-label">الكمية</label>
+      <input class="input-field" type="number" id="edit-qty" min="0">
+    </div>
+    <div class="input-group">
+      <label class="input-label">الحد الأدنى</label>
+      <input class="input-field" type="number" id="edit-min" min="0">
+    </div>
+    <div class="input-group">
+      <label class="input-label">ملاحظات</label>
+      <input class="input-field" type="text" id="edit-notes">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" style="flex:1" onclick="closeModal()">إلغاء</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveEdit()">حفظ التعديلات</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ===== DATA =====
+  let parts = JSON.parse(localStorage.getItem('karborator_parts') || '[]');
+  let eodData = {};
+  let editId = null;
+  let currentPhoto = null;
+
+  function save() {
+    localStorage.setItem('karborator_parts', JSON.stringify(parts));
+  }
+
+  // ===== TABS =====
+  function showTab(tab) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('screen-' + tab).classList.add('active');
+    event.currentTarget.classList.add('active');
+
+    if (tab === 'inventory') renderInventory();
+    if (tab === 'eod') renderEOD();
+  }
+
+  // ===== PHOTO =====
+  function handlePhoto(input) {
+    if (!input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      currentPhoto = e.target.result;
+      const area = document.getElementById('photoUploadArea');
+      area.innerHTML = `<img src="${currentPhoto}"><div class="overlay"><span style="font-size:24px">✅</span><span style="color:#fff;font-size:13px;margin-top:6px">تم اختيار الصورة</span></div>`;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  // ===== ADD PART =====
+  function savePart() {
+    const name = document.getElementById('partName').value.trim();
+    const code = document.getElementById('partCode').value.trim();
+    const qty = parseInt(document.getElementById('partQty').value) || 0;
+    const min = parseInt(document.getElementById('partMin').value) || 2;
+    const notes = document.getElementById('partNotes').value.trim();
+
+    if (!name) { showToast('⚠️ اكتب اسم القطعة الأول!'); return; }
+    if (qty < 0) { showToast('⚠️ الكمية لازم تكون صفر أو أكتر!'); return; }
+
+    parts.push({
+      id: Date.now(),
+      name, code, qty, min, notes,
+      photo: currentPhoto,
+      addedDate: new Date().toLocaleDateString('ar-EG')
+    });
+    save();
+
+    // Reset form
+    document.getElementById('partName').value = '';
+    document.getElementById('partCode').value = '';
+    document.getElementById('partQty').value = '';
+    document.getElementById('partMin').value = '';
+    document.getElementById('partNotes').value = '';
+    document.getElementById('photoUploadArea').innerHTML = `<div class="photo-upload-icon">📷</div><div class="photo-upload-text">اضغط لتصوير أو اختيار صورة</div>`;
+    currentPhoto = null;
+
+    showToast('✅ تم حفظ القطعة!', 'green');
+  }
+
+  // ===== RENDER INVENTORY =====
+  function renderInventory() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const list = document.getElementById('parts-list');
+    const filtered = parts.filter(p =>
+      p.name.toLowerCase().includes(search) ||
+      (p.code && p.code.toLowerCase().includes(search))
+    );
+
+    // Stats
+    document.getElementById('stat-total').textContent = parts.length;
+    document.getElementById('stat-qty').textContent = parts.reduce((s, p) => s + p.qty, 0);
+    document.getElementById('stat-low').textContent = parts.filter(p => p.qty <= p.min).length;
+
+    if (parts.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔧</div><div class="empty-text">ماعندكش قطع لسه<br><small style="font-size:13px;color:#666;margin-top:8px;display:block">روح تبويبة "إضافة قطعة"</small></div></div>`;
+      return;
+    }
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">مفيش نتايج للبحث ده</div></div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(p => {
+      const isLow = p.qty <= p.min;
+      const isZero = p.qty === 0;
+      const stockClass = isZero ? 'zero' : isLow ? 'low' : 'ok';
+      const stockText = isZero ? '❌ خلصت' : isLow ? '⚠️ منخفض' : '✅ متاح';
+      const thumbHtml = p.photo
+        ? `<div class="part-thumb"><img src="${p.photo}" alt="${p.name}"></div>`
+        : `<div class="part-thumb">⚙️</div>`;
+
+      return `
+        <div class="part-card ${isLow ? 'low-stock' : ''}" id="part-${p.id}">
+          <div class="part-card-body">
+            ${thumbHtml}
+            <div class="part-info">
+              <div class="part-name">${p.name}</div>
+              ${p.code ? `<div class="part-code">${p.code}</div>` : ''}
+              <div class="part-stock-row">
+                <span class="stock-badge ${stockClass}">${stockText}</span>
+                <span style="font-size:20px;font-weight:900;color:var(--text)">${p.qty}</span>
+                <span style="font-size:12px;color:var(--muted)">قطعة</span>
+              </div>
+              ${p.notes ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">📝 ${p.notes}</div>` : ''}
+            </div>
+          </div>
+          <div class="part-actions">
+            <button class="btn-sm minus" onclick="adjustQty(${p.id}, -1)">➖ سحب</button>
+            <button class="btn-sm plus" onclick="adjustQty(${p.id}, +1)">➕ إضافة</button>
+            <button class="btn-sm" style="background:rgba(255,107,0,0.1);color:var(--orange);border:1px solid #333" onclick="openEdit(${p.id})">✏️</button>
+            <button class="btn-sm delete" onclick="deletePart(${p.id})">🗑️</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function adjustQty(id, delta) {
+    const p = parts.find(x => x.id === id);
+    if (!p) return;
+    const newQty = p.qty + delta;
+    if (newQty < 0) { showToast('⚠️ الكمية مش ممكن تبقى أقل من صفر!'); return; }
+    p.qty = newQty;
+    save();
+    renderInventory();
+    showToast(delta > 0 ? `✅ تم إضافة 1 لـ ${p.name}` : `📤 تم سحب 1 من ${p.name}`, delta > 0 ? 'green' : '');
+  }
+
+  function deletePart(id) {
+    if (!confirm('متأكد إنك عايز تمسح القطعة دي؟')) return;
+    parts = parts.filter(p => p.id !== id);
+    save();
+    renderInventory();
+    showToast('🗑️ تم مسح القطعة');
+  }
+
+  // ===== EDIT MODAL =====
+  function openEdit(id) {
+    const p = parts.find(x => x.id === id);
+    if (!p) return;
+    editId = id;
+    document.getElementById('edit-name').value = p.name;
+    document.getElementById('edit-qty').value = p.qty;
+    document.getElementById('edit-min').value = p.min;
+    document.getElementById('edit-notes').value = p.notes || '';
+    document.getElementById('editModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('editModal').classList.remove('open');
+    editId = null;
+  }
+
+  function saveEdit() {
+    const p = parts.find(x => x.id === editId);
+    if (!p) return;
+    p.name = document.getElementById('edit-name').value.trim() || p.name;
+    p.qty = parseInt(document.getElementById('edit-qty').value) || 0;
+    p.min = parseInt(document.getElementById('edit-min').value) || 2;
+    p.notes = document.getElementById('edit-notes').value.trim();
+    save();
+    closeModal();
+    renderInventory();
+    showToast('✅ تم حفظ التعديلات', 'green');
+  }
+
+  // ===== EOD =====
+  function renderEOD() {
+    const today = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    document.getElementById('eod-date').textContent = today;
+
+    eodData = {};
+    parts.forEach(p => eodData[p.id] = 0);
+
+    if (parts.length === 0) {
+      document.getElementById('eod-parts-list').innerHTML = '';
+      document.getElementById('eod-empty').style.display = 'block';
+      document.getElementById('eod-summary').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('eod-empty').style.display = 'none';
+
+    document.getElementById('eod-parts-list').innerHTML = parts.map(p => `
+      <div class="eod-part-row">
+        <div class="eod-part-name">⚙️ ${p.name} <span style="color:var(--muted);font-size:13px">(متاح: ${p.qty})</span></div>
+        <div class="eod-controls">
+          <div class="eod-label">اتبع كام حاجة؟</div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="eodMinus(${p.id})">−</button>
+            <div class="qty-num" id="eod-qty-${p.id}">0</div>
+            <button class="qty-btn" onclick="eodPlus(${p.id}, ${p.qty})">+</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    updateEODSummary();
+  }
+
+  function eodPlus(id, maxQty) {
+    if (eodData[id] < maxQty) {
+      eodData[id]++;
+      document.getElementById('eod-qty-' + id).textContent = eodData[id];
+      updateEODSummary();
+    } else {
+      showToast('⚠️ وصلت للكمية الكاملة!');
+    }
+  }
+
+  function eodMinus(id) {
+    if (eodData[id] > 0) {
+      eodData[id]--;
+      document.getElementById('eod-qty-' + id).textContent = eodData[id];
+      updateEODSummary();
+    }
+  }
+
+  function updateEODSummary() {
+    const hasChanges = Object.values(eodData).some(v => v > 0);
+    const summaryDiv = document.getElementById('eod-summary');
+
+    if (!hasChanges) {
+      summaryDiv.style.display = 'none';
+      return;
+    }
+
+    summaryDiv.style.display = 'block';
+    const rows = parts
+      .filter(p => eodData[p.id] > 0)
+      .map(p => `
+        <div class="summary-row">
+          <span>${p.name}</span>
+          <span>
+            <span class="val red">−${eodData[p.id]}</span>
+            &nbsp;→&nbsp;
+            <span class="val ${(p.qty - eodData[p.id]) <= p.min ? 'red' : 'green'}">${p.qty - eodData[p.id]}</span>
+            <span style="color:var(--muted);font-size:12px"> متبقي</span>
+          </span>
+        </div>
+      `).join('');
+
+    document.getElementById('summary-rows').innerHTML = rows;
+  }
+
+  function confirmEOD() {
+    let changed = 0;
+    parts.forEach(p => {
+      if (eodData[p.id] > 0) {
+        p.qty = Math.max(0, p.qty - eodData[p.id]);
+        changed++;
+      }
+    });
+    save();
+    showToast(`✅ تم تحديث ${changed} قطعة!`, 'green');
+    setTimeout(() => { showTab('inventory'); renderInventory(); }, 800);
+  }
+
+  function resetEOD() {
+    renderEOD();
+    showToast('↩️ تم إعادة الضبط');
+  }
+
+  // ===== TOAST =====
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (type === 'green' ? ' green' : '');
+    setTimeout(() => t.className = 'toast', 2500);
+  }
+
+  // ===== INIT =====
+  renderInventory();
+</script>
+</body>
+</html>
